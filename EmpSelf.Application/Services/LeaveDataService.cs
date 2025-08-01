@@ -395,6 +395,16 @@ namespace EmpSelf.Application.Services
                 return CommonResponse.Ok(data);
             
         }
+        public CommonResponse getalllHolidaysbyDate(DateTime DateFrom, DateTime DateTo)
+        {
+            var count = _context.HrCompanyCalender
+                .Where(c => c.Mdate >= DateFrom && c.Mdate <= DateTo &&
+                            (c.Mday == "F" || c.Mday == "H"))
+                .Count();
+
+            return CommonResponse.Ok(count);
+        }
+
 
 
         public CommonResponse NewLeaveRequest(NewLeaveDataDto NewLeaveData)

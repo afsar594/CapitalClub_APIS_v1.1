@@ -106,7 +106,12 @@ namespace EmpSelf.ApiCall.Controllers
 
             return Response(_leavedataservice.GetAllApproved(empName, fromdate, endate, companyId));
         }
+        [HttpGet("getalllHolidaysbyDate/{fromdate}/{endate}")]
+        public IActionResult getalllHolidaysbyDate(DateTime fromdate, DateTime endate)
+        {
 
+            return Response(_leavedataservice.getalllHolidaysbyDate(fromdate, endate));
+        }
         [HttpGet("getCompanies")]
         public IActionResult GetCompanies()
         {

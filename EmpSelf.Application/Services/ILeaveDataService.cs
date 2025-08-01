@@ -27,6 +27,10 @@ namespace EmpSelf.Application.Services
         CommonResponse GetPendingAll(int EmpID);
         CommonResponse GetAllPending(int EmpName, DateTime DateFrom, DateTime DateTo,long companyId);
         CommonResponse GetAllApproved(int EmpName, DateTime DateFrom, DateTime DateTo,long companyId);
+        CommonResponse getalllHolidaysbyDate(DateTime DateFrom, DateTime DateTo);
+
+
+        
         CommonResponse GetFilterData(int EmpID, DateTime? DateFrom, DateTime? DateTo);
 
         CommonResponse GetDataWithID(int LID);
