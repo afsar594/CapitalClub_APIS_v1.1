@@ -170,7 +170,7 @@ namespace EmpSelf.Core.Domain
                 ////#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
                 ////                optionsBuilder.UseSqlServer("Server=DESKTOP-AHIKFRV\\SQLEXPRESS;Database=InspireHR05012021;User Id=sa;Password=12;;MultipleActiveResultSets=true;Trusted_Connection=True;");
 
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
                 optionsBuilder.UseSqlServer("Server=gpcdubai.securehostplanet.com;Database=InspireEmp;User Id=sa;Password=yXJVrHaQh98TTo;MultipleActiveResultSets=true;Trusted_Connection=False;");
 
             }

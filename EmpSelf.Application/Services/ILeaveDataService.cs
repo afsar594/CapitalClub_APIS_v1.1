@@ -40,7 +40,7 @@ namespace EmpSelf.Application.Services
         CommonResponse GetAllLeaveBalance( int empid, int workgroupid);
         //  CommonResponse RemoveLeaveRequest(HrLeaveDataReq NewLeaveData);
 
-
+        CommonResponse GetMultiAllPending(int EmpName, DateTime DateFrom, DateTime DateTo, long companyId, long userId);
 
 
     }

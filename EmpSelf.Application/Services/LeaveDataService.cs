@@ -406,8 +406,6 @@ namespace EmpSelf.Application.Services
             return CommonResponse.Ok(count);
         }
 
-
-
         public CommonResponse NewLeaveRequest(NewLeaveDataDto NewLeaveData)
         {
             try
@@ -616,6 +614,52 @@ namespace EmpSelf.Application.Services
                 return CommonResponse.Error();
             }
         }
+        public CommonResponse GetMultiAllPending(int EmpName, DateTime DateFrom, DateTime DateTo,
+      long companyId, long userId)
+        {
+
+            var data = (from hr in _context.HrLeaveDataReq.Include(x => x.LeaveDataTypeNavigation).Include(x => x.LeaveEmp)
+
+                        join st in _context.HrStaffMaster on hr.LeaveEmpid equals st.StaffId
+                        join cm in _context.HrCompanyMaster on st.CompanyId equals cm.CompanyId
+                        join sd in _context.HRLeaveApprovalStaffdetails on hr.LeavDataId equals sd.LeaveID
+
+                        where
+                     //(hr.Status == 2 || hr.Status == 3) &&
+                     //&& (st.ActiveStatusId == 0 || st.ActiveStatusId == 1)
+                     //&& (companyId == -1 || cm.CompanyId == companyId)
+                     // && (EmpName == -1 || st.StaffId == EmpName) &&
+                     sd.PermissionStaffID == userId &&
+                 (DateFrom == new DateTime(1900, 01, 01).Date || hr.LeaveDataFrom >= DateFrom) &&
+                 (DateTo == new DateTime(2080, 01, 01).Date || hr.LeaveDataTo <= DateTo)
+
+                        select new LeaveDataViewModel
+                        {
+                            LeaveDataFrom = hr.LeaveDataFrom.HasValue
+                         ? hr.LeaveDataFrom.Value.ToString("dd/MMM/yyyy", ci)
+                         : null,
+                            LeaveDataTo = hr.LeaveDataTo.HasValue
+                         ? hr.LeaveDataTo.Value.ToString("dd/MMM/yyyy", ci)
+                         : null,
+                            LeaveDays = hr.LeaveDays,
+                            LeavDataId = hr.LeavDataId,
+                            ReqDate = hr.ReqDate.HasValue ? hr.ReqDate.Value : default,
+                            LeaveDataReason = hr.LeaveDataReason,
+                            LeaveDataType = hr.LeaveDataType,
+                            Status = sd.ApproveStatus,
+                            LeaveDataTypeNavigation = hr.LeaveDataTypeNavigation,
+                            LeaveEmp = hr.LeaveEmp,
+                            CompanyName = cm.CompanyName,
+                            LeaveEmpName = st != null ? st.FullName : null,
+                            Remaining = _context.HRLeaveApprovalStaffdetails.Where(x => x.ApproveStatus != 2 && x.LeaveID == hr.LeavDataId).Count(),
+                        }).ToList();
+
+
+
+            return CommonResponse.Ok(data);
+
+        }
+
 
         public CommonResponse GetCompanies()
         {

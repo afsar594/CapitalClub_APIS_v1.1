@@ -35,9 +35,7 @@ namespace EmpSelf.ApiCall.Controllers
         [HttpPost("sendrequest")]
         public IActionResult Post([FromBody] NewLeaveDataDto requestDto)
         {
-
             return Response(_leavedataservice.NewLeaveRequest(requestDto));
-
         }
         [HttpGet("getleavedata/{EmpID}")]
         public IActionResult getleavedata( int EmpID)
@@ -152,6 +150,15 @@ namespace EmpSelf.ApiCall.Controllers
         {
 
             return Response(_leavedataservice.UpdateLeaveMultiApproval(leavedataid, stid, Empid, StRem));
+        }
+
+
+
+        [HttpGet("getallleavependingmultidata/{empName}/{fromdate}/{endate}/{companyId}/{userId}")]
+        public IActionResult getallleavependingmultidata(int empName, DateTime fromdate,
+            DateTime endate, long companyId, int userId)
+        {
+            return Response(_leavedataservice.GetMultiAllPending(empName, fromdate, endate, companyId, userId));
         }
 
 
