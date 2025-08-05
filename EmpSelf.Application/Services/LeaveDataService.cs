@@ -388,7 +388,8 @@ namespace EmpSelf.Application.Services
                                 LeaveDataTypeNavigation = hr.LeaveDataTypeNavigation,
                                 LeaveEmp = hr.LeaveEmp,
                                 CompanyName = cm.CompanyName,
-                                LeaveEmpName = st != null ? st.FullName : null
+                                LeaveEmpName = st != null ? st.FullName : null,
+                                Remaining = _context.HRLeaveApprovalStaffdetails.Where(x => x.ApproveStatus != 2 && x.LeaveID == hr.LeavDataId).Count(),
                             }).ToList();
 
 
@@ -454,6 +455,34 @@ namespace EmpSelf.Application.Services
                 };
 
                 this._context.HrLeaveDataReq.Add(LeaveDataReq);
+                this._context.SaveChanges();
+                HRLeaveApprovalStaffdetails LeaveSD = new HRLeaveApprovalStaffdetails()
+
+                {
+                    LeaveID = LeaveDataReq.LeavDataId,
+                    PermissionStaffID = 1,
+                    ApproveStatus = 0,
+
+                };
+                this._context.HRLeaveApprovalStaffdetails.Add(LeaveSD);
+                HRLeaveApprovalStaffdetails LeaveSD1 = new HRLeaveApprovalStaffdetails()
+
+                {
+                    LeaveID = LeaveDataReq.LeavDataId,
+                    PermissionStaffID = 2,
+                    ApproveStatus = 0,
+
+                };
+                this._context.HRLeaveApprovalStaffdetails.Add(LeaveSD1);
+                HRLeaveApprovalStaffdetails LeaveSD2 = new HRLeaveApprovalStaffdetails()
+
+                {
+                    LeaveID = LeaveDataReq.LeavDataId,
+                    PermissionStaffID = 3,
+                    ApproveStatus = 0,
+
+                };
+                this._context.HRLeaveApprovalStaffdetails.Add(LeaveSD2);
                 this._context.SaveChanges();
                 return CommonResponse.Created(NewLeaveData);
             }
@@ -528,6 +557,52 @@ namespace EmpSelf.Application.Services
         }
 
 
+        public CommonResponse UpdateLeaveMultiApproval(int leavedata, int stid, int Empid, string StRem)
+        {
+            try
+            {
+                var data = _context.HrLeaveDataReq.Where(x => x.LeavDataId == leavedata).FirstOrDefault();
+
+                var dataLeaveSt = _context.HRLeaveApprovalStaffdetails.Where(x => x.LeaveID == leavedata && x.PermissionStaffID == Empid).FirstOrDefault();
+
+                //if (data.Status == 0 || data.Status == 1)
+                //{
+                //    if (stid == 2)
+                //    {
+                //        data.ApproveDate = DateTime.Now;
+                //        data.ApprovedBy = Empid;
+                //    }
+                //    else
+                //    {
+                //        data.RejectedDate = DateTime.Now;
+                //        data.RejectedBy = Empid;
+                //    }
+                //    data.Status = stid;
+                //    data.Remarks = StRem;
+                //    this._context.HrLeaveDataReq.Update(data);
+                //    this._context.SaveChanges();
+                //}
+                //else
+                //{
+                //    return CommonResponse.Error();
+                //}
+
+                if (dataLeaveSt != null)
+                {
+                    dataLeaveSt.ApproveStatus = 2;
+                    dataLeaveSt.Remarks = StRem;
+                    this._context.HrLeaveDataReq.Update(data);
+                    this._context.SaveChanges();
+                }
+                return CommonResponse.Created(data);
+
+            }
+            catch
+            {
+                return CommonResponse.Error();
+            }
+
+        }
         public CommonResponse UpdateLeaveRequest(HrLeaveDataReq NewLeaveData)
         {
             try

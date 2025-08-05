@@ -147,6 +147,12 @@ namespace EmpSelf.ApiCall.Controllers
         }
 
 
+        [HttpGet("UpdateMultiApprove/{leavedataid}/{stid}/{EmpID}/{StRem}")]
+        public IActionResult UpdateMultiLeavve(int leavedataid, int stid, int Empid, string StRem)
+        {
+
+            return Response(_leavedataservice.UpdateLeaveMultiApproval(leavedataid, stid, Empid, StRem));
+        }
 
 
     }

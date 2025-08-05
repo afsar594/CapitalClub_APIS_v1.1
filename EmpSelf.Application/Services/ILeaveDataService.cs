@@ -24,6 +24,7 @@ namespace EmpSelf.Application.Services
         CommonResponse RemoveLeaveRequest(int leavedata);
 
         CommonResponse UpdateLeaveApproval(int leavedata,int stid,int Empid, string StRem);
+        CommonResponse UpdateLeaveMultiApproval(int leavedata, int stid, int Empid, string StRem);
         CommonResponse GetPendingAll(int EmpID);
         CommonResponse GetAllPending(int EmpName, DateTime DateFrom, DateTime DateTo,long companyId);
         CommonResponse GetAllApproved(int EmpName, DateTime DateFrom, DateTime DateTo,long companyId);

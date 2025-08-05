@@ -158,6 +158,10 @@ namespace EmpSelf.Core.Domain
 
         public virtual DbSet<HrLeaveBalance> HrLeaveBalance { get; set; }
 
+
+        public virtual DbSet<HRLeaveApprovalStaffdetails> HRLeaveApprovalStaffdetails { get; set; }
+        public virtual DbSet<HRPermissionStaff> HRPermissionStaff { get; set; }
+
         //================
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -4698,6 +4702,20 @@ namespace EmpSelf.Core.Domain
                     .IsUnicode(false);
 
                 entity.Property(e => e.WpspersonId).HasColumnName("WPSPersonId");
+            });
+
+            modelBuilder.Entity<HRPermissionStaff>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToTable("HR_PermissionStaff");
+            });
+
+            modelBuilder.Entity<HRLeaveApprovalStaffdetails>(entity =>
+            {
+                //entity.HasNoKey();
+
+                entity.ToTable("HR_LeaveApproval_Staff_details");
             });
             ///=============================
 

@@ -20,5 +20,6 @@ namespace EmpSelf.Application.Models
         public string CompanyName { get; set; }
         public virtual HrLeaveType LeaveDataTypeNavigation { get; set; }
         public virtual HrUsers LeaveEmp { get; set; }
+        public int? Remaining { get; set; }
     }
 }
