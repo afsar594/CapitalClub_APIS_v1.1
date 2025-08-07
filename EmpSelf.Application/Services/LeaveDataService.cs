@@ -247,7 +247,8 @@ namespace EmpSelf.Application.Services
                            LeaveDays = drows.LeaveDays,
                            Status = drows.Status,
                            LeavDataId = drows.LeavDataId,
-                           CompanyName = cm.CompanyName
+                           CompanyName = cm.CompanyName,
+                           Remaining = _context.HRLeaveApprovalStaffdetails.Where(x => x.ApproveStatus != 2 && x.LeaveID == drows.LeavDataId).Count(),
                        }).OrderByDescending(x => x.LeavDataId).ToList();
 
             return CommonResponse.Ok(Res);

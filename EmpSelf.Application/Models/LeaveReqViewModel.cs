@@ -31,5 +31,6 @@ namespace EmpSelf.Application.Models
         public  HrLeaveType LeaveDataTypeNavigation { get; set; }
 
         public string CompanyName { get; set; }
+        public int? Remaining { get; set; }
     }
 }
