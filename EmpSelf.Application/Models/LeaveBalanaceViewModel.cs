@@ -14,6 +14,8 @@ namespace EmpSelf.Application.Models
         public DateTime? JoiningDate { get; set; }   // Date when the employee joined the company
         public decimal? TotalLeaveBalance { get; set; }  // Total leave balance of the employee
         public string LeaveType { get; set; }        // Full name of the employee
+        public string DepartmentName { get; set; }        // Full name of the employee
+        public long DepartmentId { get; set; }        // Full name of the employee
 
 
     }

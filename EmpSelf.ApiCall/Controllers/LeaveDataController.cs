@@ -23,11 +23,11 @@ namespace EmpSelf.ApiCall.Controllers
         }
 
 
-        [HttpGet("getallLeaveBalanace/{empid}/{workgroupId}")]
-        public IActionResult getallLeaveBalanace(int empid,int workgroupId)
+        [HttpGet("getallLeaveBalanace/{empid}/{workgroupId}/{departmentId}")]
+        public IActionResult getallLeaveBalanace(int empid,int workgroupId, int departmentId)
         {
 
-            return Response(_leavedataservice.GetAllLeaveBalance(empid, workgroupId));
+            return Response(_leavedataservice.GetAllLeaveBalance(empid, workgroupId,departmentId));
 
         }
 
@@ -57,6 +57,13 @@ namespace EmpSelf.ApiCall.Controllers
         {
 
             return Response(_leavedataservice.getallstaff());
+
+        }
+        [HttpGet("getalldepartment")]
+        public IActionResult getalldepartment()
+        {
+
+            return Response(_leavedataservice.getalldepartment());
 
         }
 
