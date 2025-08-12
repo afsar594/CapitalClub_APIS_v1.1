@@ -27,7 +27,7 @@ namespace EmpSelf.Application.Services
         }
 
         CultureInfo ci = new CultureInfo("en-US");
-        public CommonResponse GetAllLeaveBalance(int empid,int workgroupId)
+        public CommonResponse GetAllLeaveBalance(int empid,int workgroupId,int departmentId)
         {
             // Fetch all leave balances along with corresponding staff and company details using a join
             
@@ -40,8 +40,11 @@ namespace EmpSelf.Application.Services
                                      on leave.LeaveBalUserid equals user.UserId
                                      join company in _context.HrCompanyMaster
                                      on staff.CompanyId equals company.CompanyId
-                                     //where staff.ActiveStatusId == "Annual Leave"
-                                     select new LeaveBalanaceViewModel
+                                    join dept in _context.HrDepartment
+                                    on staff.DepartmentId equals dept.DepartmentId
+                                    where (departmentId == -1 || dept.DepartmentId == departmentId)
+                                    //where staff.ActiveStatusId == "Annual Leave"
+                                    select new LeaveBalanaceViewModel
                                      {
                                          TotalLeaveBalance = leave.LeaveBalNo,
                                          StaffId = leave.LeaveBalUserid,
@@ -49,7 +52,10 @@ namespace EmpSelf.Application.Services
                                          FullName = staff.FullName,
                                          JoiningDate = staff.Doj,
                                          CompanyName = company.CompanyName,
-                                         LeaveType=leave.LeaveBalType
+                                        DepartmentName = dept.Department,
+                                        DepartmentId = dept.DepartmentId,
+
+                                        LeaveType = leave.LeaveBalType
                                      }).ToList();
                 return CommonResponse.Ok(leaveBalances);
             }
@@ -62,8 +68,12 @@ namespace EmpSelf.Application.Services
                                      on leave.LeaveBalUserid equals user.UserId
                                      join company in _context.HrCompanyMaster
                                      on staff.CompanyId equals company.CompanyId
+                                     join dept in _context.HrDepartment
+                                     on staff.DepartmentId equals dept.DepartmentId
                                      //where leave.LeaveBalType == "Annual Leave"
-                                     where (user.WorkgroupId == workgroupId && user.UserId == empid)
+                                     where (user.WorkgroupId == workgroupId && user.UserId == empid
+                                     &&
+                                    (departmentId == -1 || dept.DepartmentId == departmentId))
 
                                      select new LeaveBalanaceViewModel
                                      {
@@ -73,6 +83,8 @@ namespace EmpSelf.Application.Services
                                          FullName = staff.FullName,
                                          JoiningDate = staff.Doj,
                                          CompanyName = company.CompanyName,
+                                         DepartmentName = dept.Department,
+                                         DepartmentId = dept.DepartmentId,
                                          LeaveType = leave.LeaveBalType
                                      }).ToList();
                 return CommonResponse.Ok(leaveBalances);
@@ -134,6 +146,19 @@ namespace EmpSelf.Application.Services
         public CommonResponse getallstaff()
         {
             var data = _context.HrStaffMaster.Where(x => x.ActiveStatusId == 1 || x.ActiveStatusId==0).ToList();
+
+
+
+            return CommonResponse.Ok(data);
+        }
+        public CommonResponse getalldepartment()
+        {
+            var data = _context.HrDepartment
+                .Select(x => new DepartmentViewModel()
+                {
+                    DepartmentId = x.DepartmentId,
+                    Department = x.Department
+                }).OrderBy(x => x.Department).ToList();
 
 
 

@@ -15,6 +15,8 @@ namespace EmpSelf.Application.Services
         CommonResponse GetAllLeaveBal(int EmpID);
 
         CommonResponse getallstaff();
+        CommonResponse getalldepartment();
+
         
         CommonResponse GetAllLeaveBalType(int EmpID,int Lcode);
         CommonResponse GetCount(int EmpID);
@@ -37,7 +39,7 @@ namespace EmpSelf.Application.Services
         CommonResponse GetDataWithID(int LID);
 
         CommonResponse GetCompanies();
-        CommonResponse GetAllLeaveBalance( int empid, int workgroupid);
+        CommonResponse GetAllLeaveBalance( int empid, int workgroupid, int departmentId);
         //  CommonResponse RemoveLeaveRequest(HrLeaveDataReq NewLeaveData);
 
         CommonResponse GetMultiAllPending(int EmpName, DateTime DateFrom, DateTime DateTo, long companyId, long userId);
