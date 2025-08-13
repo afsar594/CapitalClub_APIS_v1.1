@@ -520,10 +520,18 @@ namespace EmpSelf.Application.Services
         {
             try
             {
+                
                 var data = _context.HrLeaveDataReq.Where(x => x.LeavDataId == leavedata).FirstOrDefault();
                 if(data == null) return CommonResponse.Error();
 
-                if(data.Status == 0 || data.Status == 1)
+                int remaining = _context.HRLeaveApprovalStaffdetails.Where(x => x.ApproveStatus != 2 && x.LeaveID == leavedata).Count();
+
+                if (remaining <3)
+                {
+                    return CommonResponse.Error("Approved leaves can't be deleted");
+                }
+
+                if (data.Status == 0 || data.Status == 1)
                 {
                     this._context.HrLeaveDataReq.Remove(data);
                     this._context.SaveChanges();
