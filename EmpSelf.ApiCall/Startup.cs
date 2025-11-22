@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using EmpSelf.Application.EmailNotifications;
 using EmpSelf.Application.Helpers;
 using EmpSelf.Application.Services;
 using EmpSelf.Core.Domain;
@@ -18,6 +14,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace EmpSelf.ApiCall
 {
@@ -36,6 +37,9 @@ namespace EmpSelf.ApiCall
             services.AddCors();
             services.AddControllers();
 
+            // configure strongly typed ApplicationMailSettings objects for mail notification 
+            services.Configure<ApplicationMailSettings>(Configuration.GetSection("ApplicationMailSettings"));
+
             services.AddTransient<IEmployeeService, EmployeeService>();
             services.AddTransient<ILeaveDataService, LeaveDataService>();
             services.AddTransient<ILeaveDataType, LeaveDataType>();
@@ -48,6 +52,8 @@ namespace EmpSelf.ApiCall
             services.AddTransient<ICurrentInfoServices, CurrentinfoServices>();
             services.AddTransient<IMultiStaffTimeSheetService, MultiStaffTimeSheetService>();
 
+            //Injecting the email notification services
+            services.AddScoped<IEmailNotificationServices, EmailNotificationServices>();
 
             services.AddControllers();
 
@@ -56,7 +62,7 @@ namespace EmpSelf.ApiCall
 
 
 
-            services.AddDbContext<STContext>(options => options.UseSqlServer(ConfigurationManager.GetConnectionString()));
+            services.AddDbContext<STContext>(options => options.UseSqlServer(Shared.configuration.ConfigurationManager.GetConnectionString()));
 
 
             // configure strongly typed settings objects
@@ -120,6 +126,7 @@ namespace EmpSelf.ApiCall
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Employee API V1");
+                c.RoutePrefix = string.Empty;
             });
 
             app.UseEndpoints(endpoints =>
