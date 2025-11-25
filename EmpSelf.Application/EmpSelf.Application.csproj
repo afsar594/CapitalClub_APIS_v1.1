@@ -1,19 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="SendGrid" Version="9.29.3" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="SendGrid" Version="9.29.3" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\EmpSelf.Core\EmpSelf.Core.csproj" />
-    <ProjectReference Include="..\EmpSelf.Shared\EmpSelf.Shared.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\EmpSelf.Core\EmpSelf.Core.csproj" />
+		<ProjectReference Include="..\EmpSelf.Shared\EmpSelf.Shared.csproj" />
+	</ItemGroup>
 
 </Project>

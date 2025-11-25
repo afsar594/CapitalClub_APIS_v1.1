@@ -52,7 +52,7 @@ namespace EmpSelf.Application.Services
         {
             try
             {
-                var user = _context.HrUsers.Where(x => x.UserName == _Userdata.Username && x.Passwd == _Userdata.Password).FirstOrDefault();
+                var user = _context.HrUsers.FirstOrDefault(x => x.UserName == _Userdata.Username && x.Passwd == _Userdata.Password);
                 if (user == null) return CommonResponse.Error();
                 byte[] uImg = null;
                 // authentication successful so generate jwt token
