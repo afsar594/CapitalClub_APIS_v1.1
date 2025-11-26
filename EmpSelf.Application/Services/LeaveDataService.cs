@@ -20,45 +20,41 @@ namespace EmpSelf.Application.Services
     public class LeaveDataService : ILeaveDataService
     {
         private readonly STContext _context;
-        private ICollection<LeaveReqViewModel> Leavedata;
-        private ICollection<LeaveBalviewModel> LeaveBaldata;
-        private ICollection<HrAddress> HrAddress;
+        //private ICollection<HrAddress> HrAddress;
         //private ICollection<HrUsers> HrUsers;
-        private readonly ICollection<HrUsers> _hrUsers;
-        private ICollection<HrLeaveType> HrLeaveType;
-        private ICollection<HrStaffMaster> HrStaffMaster;
+        //private readonly ICollection<HrUsers> _hrUsers;
+        //private ICollection<HrLeaveType> HrLeaveType;
+        //private ICollection<HrStaffMaster> HrStaffMaster;
         private readonly IEmailNotificationServices _emailNotificationServices;
         private readonly ApplicationMailSettings _mailSettings;
-        public LeaveDataService(STContext context, ICollection<HrUsers> hrUsers, IEmailNotificationServices emailNotificationServices, IOptions<ApplicationMailSettings> options)
+        public LeaveDataService(STContext context, IEmailNotificationServices emailNotificationServices, IOptions<ApplicationMailSettings> options)
         {
             _context = context;
-            Leavedata = new List< LeaveReqViewModel>();
-            LeaveBaldata = new List<LeaveBalviewModel>();
             _emailNotificationServices = emailNotificationServices;
             _mailSettings = options.Value;
-            _hrUsers = hrUsers;
+            //_hrUsers = hrUsers;
 
         }
 
         CultureInfo ci = new CultureInfo("en-US");
-        public CommonResponse GetAllLeaveBalance(int empid,int workgroupId,int departmentId)
+        public CommonResponse GetAllLeaveBalance(int empid, int workgroupId, int departmentId)
         {
             // Fetch all leave balances along with corresponding staff and company details using a join
-            
+
             if (workgroupId == 1)
             {
-             var   leaveBalances = (from leave in _context.HrLeaveBalance
+                var leaveBalances = (from leave in _context.HrLeaveBalance
                                      join staff in _context.HrStaffMaster
                                      on leave.LeaveBalUserid equals staff.StaffId
                                      join user in _context.HrUsers
                                      on leave.LeaveBalUserid equals user.UserId
                                      join company in _context.HrCompanyMaster
                                      on staff.CompanyId equals company.CompanyId
-                                    join dept in _context.HrDepartment
-                                    on staff.DepartmentId equals dept.DepartmentId
-                                    where (departmentId == -1 || dept.DepartmentId == departmentId)
-                                    //where staff.ActiveStatusId == "Annual Leave"
-                                    select new LeaveBalanaceViewModel
+                                     join dept in _context.HrDepartment
+                                     on staff.DepartmentId equals dept.DepartmentId
+                                     where (departmentId == -1 || dept.DepartmentId == departmentId)
+                                     //where staff.ActiveStatusId == "Annual Leave"
+                                     select new LeaveBalanaceViewModel
                                      {
                                          TotalLeaveBalance = leave.LeaveBalNo,
                                          StaffId = leave.LeaveBalUserid,
@@ -66,10 +62,10 @@ namespace EmpSelf.Application.Services
                                          FullName = staff.FullName,
                                          JoiningDate = staff.Doj,
                                          CompanyName = company.CompanyName,
-                                        DepartmentName = dept.Department,
-                                        DepartmentId = dept.DepartmentId,
+                                         DepartmentName = dept.Department,
+                                         DepartmentId = dept.DepartmentId,
 
-                                        LeaveType = leave.LeaveBalType
+                                         LeaveType = leave.LeaveBalType
                                      }).ToList();
                 return CommonResponse.Ok(leaveBalances);
             }
@@ -105,61 +101,93 @@ namespace EmpSelf.Application.Services
             }
 
             // Return the response with the list of leave balance view models
-            
+
         }
 
 
 
         public CommonResponse GetAll(int EmpID)
         {
-            var data = _context.HrLeaveDataReq.Where(x => x.LeaveEmpid == EmpID).Include(x => x.LeaveDataTypeNavigation).Where(x=>(x.LeaveDataFrom <DateTime.Now  && x.LeaveDataTo > DateTime.Now) || (x.LeaveDataFrom > DateTime.Now && x.LeaveDataTo > DateTime.Now)).OrderByDescending(x=>x.LeavDataId).ToList();
-            foreach(var drows  in data) {
-                LeaveReqViewModel newRow = new LeaveReqViewModel()
+            var data = _context.HrLeaveDataReq.Where(x => x.LeaveEmpid == EmpID)
+                .Include(x => x.LeaveDataTypeNavigation)
+                .Where(x => (x.LeaveDataFrom < DateTime.Now && x.LeaveDataTo > DateTime.Now) || (x.LeaveDataFrom > DateTime.Now && x.LeaveDataTo > DateTime.Now))
+                .OrderByDescending(x => x.LeavDataId)
+                .Select(x => new LeaveReqViewModel()
                 {
-                    LeaveDataFrom = Convert.ToDateTime(drows.LeaveDataFrom).ToString("dd/MMMM/yyyy", ci),
-                    LeaveDataTo = Convert.ToDateTime(drows.LeaveDataTo).ToString("dd/MMMM/yyyy", ci),
-                    LeaveDataReason = drows.LeaveDataReason,
-                    ReqDate = drows.ReqDate,
-                    ApproveDate = drows.ApproveDate,
-                    ApprovedBy = drows.ApprovedBy,
-                    RejectedDate = drows.RejectedDate,
-                    RejectedBy =drows.RejectedBy,
-                    Remarks = drows.Remarks,
-                    LeaveDataTypeNavigation = drows.LeaveDataTypeNavigation,
-                    LeaveDays = drows.LeaveDays,
-                    Status = drows.Status,
-                     LeavDataId =  drows.LeavDataId
-                };
+                    LeaveDataFrom = Convert.ToDateTime(x.LeaveDataFrom).ToString("dd/MMMM/yyyy", ci),
+                    LeaveDataTo = Convert.ToDateTime(x.LeaveDataTo).ToString("dd/MMMM/yyyy", ci),
+                    LeaveDataReason = x.LeaveDataReason,
+                    ReqDate = x.ReqDate,
+                    ApproveDate = x.ApproveDate,
+                    ApprovedBy = x.ApprovedBy,
+                    RejectedDate = x.RejectedDate,
+                    RejectedBy = x.RejectedBy,
+                    Remarks = x.Remarks,
+                    LeaveDataTypeNavigation = x.LeaveDataTypeNavigation,
+                    LeaveDays = x.LeaveDays,
+                    Status = x.Status,
+                    LeavDataId = x.LeavDataId
+                }).ToList();
+            //foreach (var drows in data)
+            //{
+            //    LeaveReqViewModel newRow = new LeaveReqViewModel()
+            //    {
+            //        LeaveDataFrom = Convert.ToDateTime(drows.LeaveDataFrom).ToString("dd/MMMM/yyyy", ci),
+            //        LeaveDataTo = Convert.ToDateTime(drows.LeaveDataTo).ToString("dd/MMMM/yyyy", ci),
+            //        LeaveDataReason = drows.LeaveDataReason,
+            //        ReqDate = drows.ReqDate,
+            //        ApproveDate = drows.ApproveDate,
+            //        ApprovedBy = drows.ApprovedBy,
+            //        RejectedDate = drows.RejectedDate,
+            //        RejectedBy = drows.RejectedBy,
+            //        Remarks = drows.Remarks,
+            //        LeaveDataTypeNavigation = drows.LeaveDataTypeNavigation,
+            //        LeaveDays = drows.LeaveDays,
+            //        Status = drows.Status,
+            //        LeavDataId = drows.LeavDataId
+            //    };
 
-                Leavedata.Add(newRow);
+            //    Leavedata.Add(newRow);
 
-            };
-            //Leavedata = Leavedata.OrderByDescending(x => x.ReqDate);
-            return CommonResponse.Ok(Leavedata);
+            //}
+            //;
+            ////Leavedata = Leavedata.OrderByDescending(x => x.ReqDate);
+            return CommonResponse.Ok(data);
         }
 
         public CommonResponse GetAllLeaveBal(int EmpID)
         {
-            var data = _context.HrLeaveBalance.Where(x => x.LeaveBalUserid == EmpID).OrderByDescending(x => x.LeaveBalCode).ToList();
-           
-            foreach (var drows in data)
-            {
-                LeaveBalviewModel newRow = new LeaveBalviewModel()
-                {
-                    LeaveBalId = drows.LeaveBalId,
-                    LeaveBalCode = drows.LeaveBalCode,
-                    LeaveBalType = drows.LeaveBalType,
-                    LeaveBalUserid = drows.LeaveBalUserid,
-                    LeaveBalNo = drows.LeaveBalNo
-                };
+            var data = _context.HrLeaveBalance
+                        .Where(x => x.LeaveBalUserid == EmpID)
+                        .OrderByDescending(x => x.LeaveBalCode)
+                        .Select(x=> new LeaveBalviewModel() {
+                            LeaveBalId = x.LeaveBalId,
+                            LeaveBalCode = x.LeaveBalCode,
+                            LeaveBalType = x.LeaveBalType,
+                            LeaveBalUserid = x.LeaveBalUserid,
+                            LeaveBalNo = x.LeaveBalNo
+                        })
+                        .ToList();
 
-                LeaveBaldata.Add(newRow);
-            };
-            return CommonResponse.Ok(LeaveBaldata);
+            //foreach (var drows in data)
+            //{
+            //    LeaveBalviewModel newRow = new LeaveBalviewModel()
+            //    {
+            //        LeaveBalId = drows.LeaveBalId,
+            //        LeaveBalCode = drows.LeaveBalCode,
+            //        LeaveBalType = drows.LeaveBalType,
+            //        LeaveBalUserid = drows.LeaveBalUserid,
+            //        LeaveBalNo = drows.LeaveBalNo
+            //    };
+
+            //    LeaveBaldata.Add(newRow);
+            //}
+            //;
+            return CommonResponse.Ok(data);
         }
         public CommonResponse getallstaff()
         {
-            var data = _context.HrStaffMaster.Where(x => x.ActiveStatusId == 1 || x.ActiveStatusId==0).ToList();
+            var data = _context.HrStaffMaster.Where(x => x.ActiveStatusId == 1 || x.ActiveStatusId == 0).ToList();
 
 
 
@@ -204,24 +232,36 @@ namespace EmpSelf.Application.Services
         }
 
 
-        public CommonResponse GetAllLeaveBalType(int EmpID,int Lcode)
+        public CommonResponse GetAllLeaveBalType(int EmpID, int Lcode)
         {
-            var data = _context.HrLeaveBalance.Where(x => x.LeaveBalUserid == EmpID && x.LeaveBalCode == Lcode).OrderByDescending(x => x.LeaveBalCode).ToList();
-            foreach (var drows in data)
-            {
-                LeaveBalviewModel newRow = new LeaveBalviewModel()
+            var data = _context.HrLeaveBalance
+                .Where(x => x.LeaveBalUserid == EmpID && x.LeaveBalCode == Lcode)
+                .Select(x=> new LeaveBalviewModel()
                 {
-                    LeaveBalId = drows.LeaveBalId,
-                    LeaveBalCode = drows.LeaveBalCode,
-                    LeaveBalType = drows.LeaveBalType,
-                    LeaveBalUserid = drows.LeaveBalUserid,
-                    LeaveBalNo = drows.LeaveBalNo
-                };
+                    LeaveBalId = x.LeaveBalId,
+                    LeaveBalCode = x.LeaveBalCode,
+                    LeaveBalType = x.LeaveBalType,
+                    LeaveBalUserid = x.LeaveBalUserid,
+                    LeaveBalNo = x.LeaveBalNo
+                })
+                .OrderByDescending(x => x.LeaveBalCode)
+                .ToList();
+            //foreach (var drows in data)
+            //{
+            //    LeaveBalviewModel newRow = new LeaveBalviewModel()
+            //    {
+            //        LeaveBalId = drows.LeaveBalId,
+            //        LeaveBalCode = drows.LeaveBalCode,
+            //        LeaveBalType = drows.LeaveBalType,
+            //        LeaveBalUserid = drows.LeaveBalUserid,
+            //        LeaveBalNo = drows.LeaveBalNo
+            //    };
 
-                LeaveBaldata.Add(newRow);
+            //    LeaveBaldata.Add(newRow);
 
-            };
-            return CommonResponse.Ok(LeaveBaldata);
+            //}
+            //;
+            return CommonResponse.Ok(data);
         }
 
         public CommonResponse GetCount(int EmpID)
@@ -301,31 +341,51 @@ namespace EmpSelf.Application.Services
 
         public CommonResponse GetDataWithID(int LevID)
         {
-            var data = _context.HrLeaveDataReq.Where(x => x.LeavDataId == LevID && (x.Status == 0 || x.Status == 1)).Include(x => x.LeaveDataTypeNavigation);
-            foreach (var drows in data)
-            {
-                LeaveReqViewModel newRow = new LeaveReqViewModel()
+            var data = _context.HrLeaveDataReq
+                .Where(x => x.LeavDataId == LevID && (x.Status == 0 || x.Status == 1))
+                .Include(x => x.LeaveDataTypeNavigation)
+                .Select(x => new LeaveReqViewModel()
                 {
-                    LeaveDataFrom = Convert.ToDateTime(drows.LeaveDataFrom).ToString("dd/MMM/yyyy", ci),
-                    LeaveDataTo = Convert.ToDateTime(drows.LeaveDataTo).ToString("dd/MMM/yyyy", ci),
-                    LeaveDataReason = drows.LeaveDataReason,
-                    ReqDate = drows.ReqDate,
-                    ApproveDate = drows.ApproveDate,
-                    ApprovedBy = drows.ApprovedBy,
-                    RejectedDate = drows.RejectedDate,
-                    RejectedBy = drows.RejectedBy,
-                    Remarks = drows.Remarks,
-                    LeaveDataTypeNavigation = drows.LeaveDataTypeNavigation,
-                    LeaveDays = drows.LeaveDays,
-                    Status = drows.Status,
-                    LeavDataId = drows.LeavDataId,
-                    LeaveReqImage = drows.LeaveReqImage
-                };
+                    LeaveDataFrom = Convert.ToDateTime(x.LeaveDataFrom).ToString("dd/MMM/yyyy", ci),
+                    LeaveDataTo = Convert.ToDateTime(x.LeaveDataTo).ToString("dd/MMM/yyyy", ci),
+                    LeaveDataReason = x.LeaveDataReason,
+                    ReqDate = x.ReqDate,
+                    ApproveDate = x.ApproveDate,
+                    ApprovedBy = x.ApprovedBy,
+                    RejectedDate = x.RejectedDate,  
+                    RejectedBy = x.RejectedBy,
+                    Remarks = x.Remarks,
+                    LeaveDataTypeNavigation = x.LeaveDataTypeNavigation,
+                    LeaveDays = x.LeaveDays,
+                    Status = x.Status,
+                    LeavDataId = x.LeavDataId,
+                    LeaveReqImage = x.LeaveReqImage
+                });
+            //foreach (var drows in data)
+            //{
+            //    LeaveReqViewModel newRow = new LeaveReqViewModel()
+            //    {
+            //        LeaveDataFrom = Convert.ToDateTime(drows.LeaveDataFrom).ToString("dd/MMM/yyyy", ci),
+            //        LeaveDataTo = Convert.ToDateTime(drows.LeaveDataTo).ToString("dd/MMM/yyyy", ci),
+            //        LeaveDataReason = drows.LeaveDataReason,
+            //        ReqDate = drows.ReqDate,
+            //        ApproveDate = drows.ApproveDate,
+            //        ApprovedBy = drows.ApprovedBy,
+            //        RejectedDate = drows.RejectedDate,
+            //        RejectedBy = drows.RejectedBy,
+            //        Remarks = drows.Remarks,
+            //        LeaveDataTypeNavigation = drows.LeaveDataTypeNavigation,
+            //        LeaveDays = drows.LeaveDays,
+            //        Status = drows.Status,
+            //        LeavDataId = drows.LeavDataId,
+            //        LeaveReqImage = drows.LeaveReqImage
+            //    };
 
-                Leavedata.Add(newRow);
+            //    Leavedata.Add(newRow);
 
-            };
-            return CommonResponse.Ok(Leavedata);
+            //}
+            //;
+            return CommonResponse.Ok(data);
         }
 
 
@@ -340,101 +400,101 @@ namespace EmpSelf.Application.Services
                     LeaveDataFrom = Convert.ToDateTime(x.LeaveDataFrom).ToString("dd/MMM/yyyy", ci),
                     LeaveDataTo = Convert.ToDateTime(x.LeaveDataTo).ToString("dd/MMM/yyyy", ci),
                     LeaveDays = x.LeaveDays,
-                    LeavDataId= x.LeavDataId,
-                    LeaveDataReason =x.LeaveDataReason,
+                    LeavDataId = x.LeavDataId,
+                    LeaveDataReason = x.LeaveDataReason,
                     LeaveDataType = x.LeaveDataType,
                     LeaveDataTypeNavigation = x.LeaveDataTypeNavigation
 
                 })
                 .ToList();
-           // return CommonResponse.Ok();
+            // return CommonResponse.Ok();
             return CommonResponse.Ok(data);
         }
 
 
         public CommonResponse GetAllPending(int EmpName, DateTime DateFrom, DateTime DateTo, long companyId)
         {
-            
-         
-
-                var data = (from hr in _context.HrLeaveDataReq
-
-                                        join st in _context.HrStaffMaster on hr.LeaveEmpid equals st.StaffId
-                           join cm in _context.HrCompanyMaster on st.CompanyId equals cm.CompanyId
 
 
-                           where
-                            (hr.Status == 0) && (st.ActiveStatusId == 0 || st.ActiveStatusId == 1)
-                            //(hr.Status == 2 || hr.Status == 3) && (st.ActiveStatusId == 0 || st.ActiveStatusId == 1)
-                                       && (companyId == -1 || cm.CompanyId == companyId)
-                                        && (EmpName == -1 || st.StaffId == EmpName) &&
 
-                            (DateFrom == new DateTime(1900, 01, 01).Date || hr.LeaveDataFrom >= DateFrom) &&
-                            (DateTo == new DateTime(2080, 01, 01).Date || hr.LeaveDataTo <= DateTo)
+            var data = (from hr in _context.HrLeaveDataReq
+
+                        join st in _context.HrStaffMaster on hr.LeaveEmpid equals st.StaffId
+                        join cm in _context.HrCompanyMaster on st.CompanyId equals cm.CompanyId
 
 
-                            select new LeaveDataViewModel
-                           {
-                               LeaveDataFrom = Convert.ToDateTime(hr.LeaveDataFrom).ToString("dd/MMM/yyyy", ci),
-                               LeaveDataTo = Convert.ToDateTime(hr.LeaveDataTo).ToString("dd/MMM/yyyy", ci),
-                               LeaveDays = hr.LeaveDays ?? 0,
-                               LeavDataId = hr.LeavDataId,
-                               ReqDate = Convert.ToDateTime(hr.ReqDate),
-                               LeaveDataReason = hr.LeaveDataReason ?? null,
-                               LeaveDataType = hr.LeaveDataType ?? null,
-                               Status = hr.Status ?? null,
-                               LeaveDataTypeNavigation = hr.LeaveDataTypeNavigation ?? null,
-                               LeaveEmp = hr.LeaveEmp ?? null,
-                               CompanyName = cm.CompanyName ?? null,
-                               LeaveEmpName = st.FullName ?? null
-                           }).ToList();
+                        where
+                         (hr.Status == 0) && (st.ActiveStatusId == 0 || st.ActiveStatusId == 1)
+                                    //(hr.Status == 2 || hr.Status == 3) && (st.ActiveStatusId == 0 || st.ActiveStatusId == 1)
+                                    && (companyId == -1 || cm.CompanyId == companyId)
+                                     && (EmpName == -1 || st.StaffId == EmpName) &&
+
+                         (DateFrom == new DateTime(1900, 01, 01).Date || hr.LeaveDataFrom >= DateFrom) &&
+                         (DateTo == new DateTime(2080, 01, 01).Date || hr.LeaveDataTo <= DateTo)
 
 
-                return CommonResponse.Ok(data);
-            }
+                        select new LeaveDataViewModel
+                        {
+                            LeaveDataFrom = Convert.ToDateTime(hr.LeaveDataFrom).ToString("dd/MMM/yyyy", ci),
+                            LeaveDataTo = Convert.ToDateTime(hr.LeaveDataTo).ToString("dd/MMM/yyyy", ci),
+                            LeaveDays = hr.LeaveDays ?? 0,
+                            LeavDataId = hr.LeavDataId,
+                            ReqDate = Convert.ToDateTime(hr.ReqDate),
+                            LeaveDataReason = hr.LeaveDataReason ?? null,
+                            LeaveDataType = hr.LeaveDataType ?? null,
+                            Status = hr.Status ?? null,
+                            LeaveDataTypeNavigation = hr.LeaveDataTypeNavigation ?? null,
+                            LeaveEmp = hr.LeaveEmp ?? null,
+                            CompanyName = cm.CompanyName ?? null,
+                            LeaveEmpName = st.FullName ?? null
+                        }).ToList();
 
-           
+
+            return CommonResponse.Ok(data);
+        }
+
+
 
         public CommonResponse GetAllApproved(int EmpName, DateTime DateFrom, DateTime DateTo, long companyId)
         {
-            
-                var data = (from hr in _context.HrLeaveDataReq.Include(x => x.LeaveDataTypeNavigation).Include(x => x.LeaveEmp)
 
-                            join st in _context.HrStaffMaster on hr.LeaveEmpid equals st.StaffId
-                            join cm in _context.HrCompanyMaster on st.CompanyId equals cm.CompanyId
+            var data = (from hr in _context.HrLeaveDataReq.Include(x => x.LeaveDataTypeNavigation).Include(x => x.LeaveEmp)
 
-                                     where
-                             (hr.Status == 2 || hr.Status == 3) && (st.ActiveStatusId == 0 || st.ActiveStatusId == 1)
-                                 && (companyId == -1 || cm.CompanyId == companyId)
-                                  && (EmpName == -1 || st.StaffId == EmpName) &&
+                        join st in _context.HrStaffMaster on hr.LeaveEmpid equals st.StaffId
+                        join cm in _context.HrCompanyMaster on st.CompanyId equals cm.CompanyId
 
-                              (DateFrom == new DateTime(1900, 01, 01).Date || hr.LeaveDataFrom >= DateFrom) &&
-                              (DateTo == new DateTime(2080, 01, 01).Date || hr.LeaveDataTo <= DateTo)
+                        where
+                (hr.Status == 2 || hr.Status == 3) && (st.ActiveStatusId == 0 || st.ActiveStatusId == 1)
+                    && (companyId == -1 || cm.CompanyId == companyId)
+                     && (EmpName == -1 || st.StaffId == EmpName) &&
 
-                            select new LeaveDataViewModel
-                            {
-                                LeaveDataFrom = hr.LeaveDataFrom.HasValue
-                             ? hr.LeaveDataFrom.Value.ToString("dd/MMM/yyyy", ci)
-                             : null,
-                                LeaveDataTo = hr.LeaveDataTo.HasValue
-                             ? hr.LeaveDataTo.Value.ToString("dd/MMM/yyyy", ci)
-                             : null,
-                                LeaveDays = hr.LeaveDays,
-                                LeavDataId = hr.LeavDataId,
-                                ReqDate = hr.ReqDate.HasValue ? hr.ReqDate.Value : default,
-                                LeaveDataReason = hr.LeaveDataReason,
-                                LeaveDataType = hr.LeaveDataType,
-                                Status = hr.Status,
-                                LeaveDataTypeNavigation = hr.LeaveDataTypeNavigation,
-                                LeaveEmp = hr.LeaveEmp,
-                                CompanyName = cm.CompanyName,
-                                LeaveEmpName = st != null ? st.FullName : null,
-                                Remaining = _context.HRLeaveApprovalStaffdetails.Where(x => x.ApproveStatus != 2 && x.LeaveID == hr.LeavDataId).Count(),
-                            }).ToList();
+                 (DateFrom == new DateTime(1900, 01, 01).Date || hr.LeaveDataFrom >= DateFrom) &&
+                 (DateTo == new DateTime(2080, 01, 01).Date || hr.LeaveDataTo <= DateTo)
+
+                        select new LeaveDataViewModel
+                        {
+                            LeaveDataFrom = hr.LeaveDataFrom.HasValue
+                         ? hr.LeaveDataFrom.Value.ToString("dd/MMM/yyyy", ci)
+                         : null,
+                            LeaveDataTo = hr.LeaveDataTo.HasValue
+                         ? hr.LeaveDataTo.Value.ToString("dd/MMM/yyyy", ci)
+                         : null,
+                            LeaveDays = hr.LeaveDays,
+                            LeavDataId = hr.LeavDataId,
+                            ReqDate = hr.ReqDate.HasValue ? hr.ReqDate.Value : default,
+                            LeaveDataReason = hr.LeaveDataReason,
+                            LeaveDataType = hr.LeaveDataType,
+                            Status = hr.Status,
+                            LeaveDataTypeNavigation = hr.LeaveDataTypeNavigation,
+                            LeaveEmp = hr.LeaveEmp,
+                            CompanyName = cm.CompanyName,
+                            LeaveEmpName = st != null ? st.FullName : null,
+                            Remaining = _context.HRLeaveApprovalStaffdetails.Where(x => x.ApproveStatus != 2 && x.LeaveID == hr.LeavDataId).Count(),
+                        }).ToList();
 
 
-                return CommonResponse.Ok(data);
-            
+            return CommonResponse.Ok(data);
+
         }
         public CommonResponse getalllHolidaysbyDate(DateTime DateFrom, DateTime DateTo)
         {
@@ -481,13 +541,13 @@ namespace EmpSelf.Application.Services
                        LeaveDataFrom = lm.LeaveDataFrom,
                        LeaveDataTo = lm.LeaveDataTo,
                        LeaveDays = lm.LeaveDays,
-                       Email = a.Email,          
+                       Email = a.Email,
                        Reason = lm.LeaveDataReason,
                        UserName = u.UserName,
-                       UserId=u.UserId
+                       UserId = u.UserId
                    }
                )
-               .FirstOrDefault();          
+               .FirstOrDefault();
 
 
                 if (user == null)
@@ -525,10 +585,10 @@ namespace EmpSelf.Application.Services
                     LeaveDays = NewLeaveData.TotalDays,
                     ReqDate = DateTime.Now,
                     //LeavDataId = maxcount,
-                     LeaveEmpid = user.UserId,
-                     LeaveDataType= NewLeaveData.LeaveType.LeaveTypeId,
-                     Status=0,
-                     LeaveReqImage =p1
+                    LeaveEmpid = user.UserId,
+                    LeaveDataType = NewLeaveData.LeaveType.LeaveTypeId,
+                    Status = 0,
+                    LeaveReqImage = p1
                 };
 
                 this._context.HrLeaveDataReq.Add(LeaveDataReq);
@@ -566,11 +626,12 @@ namespace EmpSelf.Application.Services
 
                 var toMail = new List<SendGrid.Helpers.Mail.EmailAddress>() {
                    // new SendGrid.Helpers.Mail.EmailAddress("jaanjayaraj@gmail.com", "Jinash"),
-                   new SendGrid.Helpers.Mail.EmailAddress(user?.Email?? "",user?.FullName ?? ""),                };
-                var users = _hrUsers.AsQueryable().FirstOrDefault(e => e.UserId == LeaveDataReq.LeaveEmpid);
+                new SendGrid.Helpers.Mail.EmailAddress(user?.Email?? "",user?.FullName ?? ""),                };
 
+                //var users = _hrUsers.AsQueryable().FirstOrDefault(e => e.UserId == LeaveDataReq.LeaveEmpid);
+                var users = _context.HrUsers.AsQueryable().FirstOrDefault(e => e.UserId == LeaveDataReq.LeaveEmpid);
+                
                 string leaveTypeName = GetLeaveTypeName((int)LeaveDataReq.LeaveDataType);
-
 
                 var dynomicTemplateData = new
                 {
@@ -582,7 +643,7 @@ namespace EmpSelf.Application.Services
                     Reason = LeaveDataReq.Remarks ?? "",
                     ApprovalLink = ""
                 };
-               await _emailNotificationServices.SendSingleTemplateEmailToMultipleRecipientsAsync(toMail, _mailSettings.TemplateId, dynomicTemplateData);
+                await _emailNotificationServices.SendSingleTemplateEmailToMultipleRecipientsAsync(toMail, _mailSettings.TemplateId, dynomicTemplateData);
 
                 #endregion
 
@@ -592,7 +653,7 @@ namespace EmpSelf.Application.Services
                 this._context.SaveChanges();
                 return CommonResponse.Created(NewLeaveData);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return CommonResponse.Error();
             }
@@ -614,13 +675,13 @@ namespace EmpSelf.Application.Services
         {
             try
             {
-                
+
                 var data = _context.HrLeaveDataReq.Where(x => x.LeavDataId == leavedata).FirstOrDefault();
-                if(data == null) return CommonResponse.Error();
+                if (data == null) return CommonResponse.Error();
 
                 int remaining = _context.HRLeaveApprovalStaffdetails.Where(x => x.ApproveStatus != 2 && x.LeaveID == leavedata).Count();
 
-                if (remaining <3)
+                if (remaining < 3)
                 {
                     return CommonResponse.Error("Approved leaves can't be deleted");
                 }
@@ -634,30 +695,31 @@ namespace EmpSelf.Application.Services
                 {
                     return CommonResponse.Error();
                 }
-               
+
                 return CommonResponse.Created(data);
 
             }
 
-            catch 
+            catch
             {
                 return CommonResponse.Error();
             }
 
         }
 
-        public CommonResponse UpdateLeaveApproval(int leavedata,int stid,int Empid,string StRem)
+        public CommonResponse UpdateLeaveApproval(int leavedata, int stid, int Empid, string StRem)
         {
             try
             {
                 var data = _context.HrLeaveDataReq.Where(x => x.LeavDataId == leavedata).FirstOrDefault();
                 if (data.Status == 0 || data.Status == 1)
                 {
-                    if(stid == 2)
+                    if (stid == 2)
                     {
                         data.ApproveDate = DateTime.Now;
                         data.ApprovedBy = Empid;
-                    }else
+                    }
+                    else
                     {
                         data.RejectedDate = DateTime.Now;
                         data.RejectedBy = Empid;
@@ -795,7 +857,7 @@ namespace EmpSelf.Application.Services
 
                     .Select(x => new CompnanyDataViewModel()
                     {
-                       Id=x.CompanyId,
+                        Id = x.CompanyId,
                         Name = x.CompanyName
                     }).OrderBy(x => x.Name)
                 .ToList();
