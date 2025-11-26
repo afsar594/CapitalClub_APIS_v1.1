@@ -33,9 +33,9 @@ namespace EmpSelf.ApiCall.Controllers
 
 
         [HttpPost("sendrequest")]
-        public IActionResult Post([FromBody] NewLeaveDataDto requestDto)
+        public async Task<IActionResult> Post([FromBody] NewLeaveDataDto requestDto)
         {
-            return Response(_leavedataservice.NewLeaveRequest(requestDto));
+            return Response(await _leavedataservice.NewLeaveRequest(requestDto));
         }
         [HttpGet("getleavedata/{EmpID}")]
         public IActionResult getleavedata( int EmpID)

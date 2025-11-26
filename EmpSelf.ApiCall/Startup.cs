@@ -40,17 +40,17 @@ namespace EmpSelf.ApiCall
             // configure strongly typed ApplicationMailSettings objects for mail notification 
             services.Configure<ApplicationMailSettings>(Configuration.GetSection("ApplicationMailSettings"));
 
-            services.AddTransient<IEmployeeService, EmployeeService>();
-            services.AddTransient<ILeaveDataService, LeaveDataService>();
-            services.AddTransient<ILeaveDataType, LeaveDataType>();
-            services.AddTransient<ITimesheetService, TimesheetService>();
-            services.AddTransient<IServiceRequestService, ServiceRequestService>();
-            services.AddTransient<IMemoService, MemoService>();
-            services.AddTransient<IServiceRequestType, ServiceRequestType>();
-            services.AddTransient<IAttendanceService, AttendanceService>();
-            services.AddTransient<IBreakTimeService, BreakTimeServices>();
-            services.AddTransient<ICurrentInfoServices, CurrentinfoServices>();
-            services.AddTransient<IMultiStaffTimeSheetService, MultiStaffTimeSheetService>();
+            services.AddScoped<IEmployeeService, EmployeeService>();
+            services.AddScoped<ILeaveDataService, LeaveDataService>();
+            services.AddScoped<ITimesheetService, TimesheetService>();
+            services.AddScoped<IServiceRequestService, ServiceRequestService>();
+            services.AddScoped<IMemoService, MemoService>();
+            services.AddScoped<IServiceRequestType, ServiceRequestType>();
+            services.AddScoped<IAttendanceService, AttendanceService>();
+            services.AddScoped<ILeaveDataType, LeaveDataType>();
+            services.AddScoped<IBreakTimeService, BreakTimeServices>();
+            services.AddScoped<ICurrentInfoServices, CurrentinfoServices>();
+            services.AddScoped<IMultiStaffTimeSheetService, MultiStaffTimeSheetService>();
 
             //Injecting the email notification services
             services.AddScoped<IEmailNotificationServices, EmailNotificationServices>();
@@ -68,7 +68,8 @@ namespace EmpSelf.ApiCall
             // configure strongly typed settings objects
             var appSettingsSection = Configuration.GetSection("AppSettings");
             services.Configure<AppSettings>(appSettingsSection);
-
+            services.Configure<ApplicationMailSettings>(Configuration.GetSection("ApplicationMailSettings"));
+            
             // configure jwt authentication
             var appSettings = appSettingsSection.Get<AppSettings>();
             var key = Encoding.ASCII.GetBytes(appSettings.Secret);

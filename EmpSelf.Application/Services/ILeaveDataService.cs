@@ -4,12 +4,13 @@ using EmpSelf.Shared.Domain;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace EmpSelf.Application.Services
 {
    public interface ILeaveDataService
     {
-        CommonResponse NewLeaveRequest(NewLeaveDataDto NewLeaveData);
+        Task<CommonResponse> NewLeaveRequest(NewLeaveDataDto NewLeaveData);
         CommonResponse UpdateLeaveRequest(HrLeaveDataReq NewLeaveData);
         CommonResponse GetAll(int EmpID);
         CommonResponse GetAllLeaveBal(int EmpID);
