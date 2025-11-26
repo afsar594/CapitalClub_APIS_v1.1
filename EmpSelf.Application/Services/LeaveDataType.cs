@@ -20,7 +20,8 @@ namespace EmpSelf.Application.Services
         {
             try
             {
-                return CommonResponse.Ok(_context.HrLeaveType.ToList());
+              var data=  _context.HrLeaveType.OrderBy(x =>x.LeaveType).ToList();
+                return CommonResponse.Ok(data);
             }
             catch
             {

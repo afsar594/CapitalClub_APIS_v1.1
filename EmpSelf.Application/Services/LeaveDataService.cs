@@ -1,16 +1,19 @@
-﻿using EmpSelf.Application.Models;
+﻿using EmpSelf.Application.EmailNotifications;
+using EmpSelf.Application.Models;
 using EmpSelf.Core.Domain;
 using EmpSelf.Shared.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Globalization;
 using System.IO;
-using System.Text;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using System.Collections;
 
 namespace EmpSelf.Application.Services
 {
@@ -19,11 +22,22 @@ namespace EmpSelf.Application.Services
         private readonly STContext _context;
         private ICollection<LeaveReqViewModel> Leavedata;
         private ICollection<LeaveBalviewModel> LeaveBaldata;
-        public LeaveDataService(STContext context)
+        private ICollection<HrAddress> HrAddress;
+        //private ICollection<HrUsers> HrUsers;
+        private readonly ICollection<HrUsers> _hrUsers;
+        private ICollection<HrLeaveType> HrLeaveType;
+        private ICollection<HrStaffMaster> HrStaffMaster;
+        private readonly IEmailNotificationServices _emailNotificationServices;
+        private readonly ApplicationMailSettings _mailSettings;
+        public LeaveDataService(STContext context, ICollection<HrUsers> hrUsers, IEmailNotificationServices emailNotificationServices, IOptions<ApplicationMailSettings> options)
         {
             _context = context;
             Leavedata = new List< LeaveReqViewModel>();
             LeaveBaldata = new List<LeaveBalviewModel>();
+            _emailNotificationServices = emailNotificationServices;
+            _mailSettings = options.Value;
+            _hrUsers = hrUsers;
+
         }
 
         CultureInfo ci = new CultureInfo("en-US");
@@ -432,11 +446,50 @@ namespace EmpSelf.Application.Services
             return CommonResponse.Ok(count);
         }
 
-        public CommonResponse NewLeaveRequest(NewLeaveDataDto NewLeaveData)
+        public async Task<CommonResponse> NewLeaveRequest(NewLeaveDataDto NewLeaveData)
         {
             try
             {
-                var user = _context.HrUsers.Where(c => c.UserId == NewLeaveData.EmployeeID).FirstOrDefault();
+                //var user = _context.HrUsers.Where(c => c.UserId == NewLeaveData.EmployeeID).FirstOrDefault();
+                var user =
+               (
+                   from lm in _context.HrLeaveDataReq
+
+                   join lt in _context.HrLeaveType
+                       on lm.LeaveDataType equals lt.LeaveTypeId into ltJoin
+                   from lt in ltJoin.DefaultIfEmpty()
+
+                   join s in _context.HrStaffMaster
+                       on lm.LeaveEmpid equals s.StaffId into sJoin
+                   from s in sJoin.DefaultIfEmpty()
+
+                   join a in _context.HrAddress
+                       on lm.LeaveEmpid equals a.StaffId into aJoin
+                   from a in aJoin.DefaultIfEmpty()
+
+                   join u in _context.HrUsers
+                       on lm.LeaveEmpid equals u.UserId into uJoin
+                   from u in uJoin.DefaultIfEmpty()
+
+                   where lm.LeaveEmpid == NewLeaveData.EmployeeID
+                   orderby lm.LeavDataId descending
+
+                   select new
+                   {
+                       FullName = s.FullName,
+                       LeaveType = lt.LeaveType,
+                       LeaveDataFrom = lm.LeaveDataFrom,
+                       LeaveDataTo = lm.LeaveDataTo,
+                       LeaveDays = lm.LeaveDays,
+                       Email = a.Email,          
+                       Reason = lm.LeaveDataReason,
+                       UserName = u.UserName,
+                       UserId=u.UserId
+                   }
+               )
+               .FirstOrDefault();          
+
+
                 if (user == null)
                 {
                     return CommonResponse.Error();
@@ -506,6 +559,35 @@ namespace EmpSelf.Application.Services
                     ApproveStatus = 0,
 
                 };
+
+
+
+                #region Email Notification 
+
+                var toMail = new List<SendGrid.Helpers.Mail.EmailAddress>() {
+                   // new SendGrid.Helpers.Mail.EmailAddress("jaanjayaraj@gmail.com", "Jinash"),
+                   new SendGrid.Helpers.Mail.EmailAddress(user?.Email?? "",user?.FullName ?? ""),                };
+                var users = _hrUsers.AsQueryable().FirstOrDefault(e => e.UserId == LeaveDataReq.LeaveEmpid);
+
+                string leaveTypeName = GetLeaveTypeName((int)LeaveDataReq.LeaveDataType);
+
+
+                var dynomicTemplateData = new
+                {
+                    EmployeeName = users.StaffName,
+                    LeaveType = leaveTypeName,
+                    FromDate = Convert.ToDateTime(LeaveDataReq.LeaveDataFrom).ToShortDateString(),
+                    ToDate = Convert.ToDateTime(LeaveDataReq.LeaveDataTo).ToShortDateString(),
+                    TotalDays = LeaveDataReq.LeaveDays,
+                    Reason = LeaveDataReq.Remarks ?? "",
+                    ApprovalLink = ""
+                };
+               await _emailNotificationServices.SendSingleTemplateEmailToMultipleRecipientsAsync(toMail, _mailSettings.TemplateId, dynomicTemplateData);
+
+                #endregion
+
+
+
                 this._context.HRLeaveApprovalStaffdetails.Add(LeaveSD2);
                 this._context.SaveChanges();
                 return CommonResponse.Created(NewLeaveData);
@@ -515,7 +597,19 @@ namespace EmpSelf.Application.Services
                 return CommonResponse.Error();
             }
         }
-
+        public string GetLeaveTypeName(int leaveTypeId)
+        {
+            return leaveTypeId switch
+            {
+                1 => "Annual Leave",
+                2 => "Absent Half Day",
+                3 => "Emergency",
+                5 => "Absent",
+                6 => "Sick Leave",
+                7 => "Remote Work",
+                _ => ""
+            };
+        }
         public CommonResponse RemoveLeaveRequest(int leavedata)
         {
             try
